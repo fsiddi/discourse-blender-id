@@ -20,8 +20,7 @@ login:
     default: 'email badge'
     client: true
   oauth2_blender_id_button_title:
-    default: 'with OAuth2'
+    default: 'with Blender ID'
     client: true
-  oauth2_blender_id_full_screen_login:
-    default: false
-    client: true
+  oauth2_blender_id_full_screen_login: true
+
