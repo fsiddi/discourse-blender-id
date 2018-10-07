@@ -27,25 +27,25 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
                       name: 'oauth2_blender_id',
                       setup: lambda { |env|
                         opts = env['omniauth.strategy'].options
-                        opts[:client_id] = SiteSetting.oauth2_client_id
-                        opts[:client_secret] = SiteSetting.oauth2_client_secret
+                        opts[:client_id] = SiteSetting.oauth2_blender_id_client_id
+                        opts[:client_secret] = SiteSetting.oauth2_blender_id_client_secret
                         opts[:provider_ignores_state] = false
                         opts[:client_options] = {
                           authorize_url: "#{SiteSetting.auth2_blender_id_url}oauth/authorize",
                           token_url: "#{SiteSetting.auth2_blender_id_url}oauth/token",
                           token_method: "POST"
                         }
-                        opts[:authorize_options] = SiteSetting.oauth2_authorize_options.split("|").map(&:to_sym)
+                        opts[:authorize_options] = SiteSetting.oauth2_blender_id_authorize_options.split("|").map(&:to_sym)
                         opts[:token_params] = { headers: { 'Authorization' => basic_auth_header } }
 
-                        unless SiteSetting.oauth2_scope.blank?
-                          opts[:scope] = SiteSetting.oauth2_scope
+                        unless SiteSetting.oauth2_blender_id_scope.blank?
+                          opts[:scope] = SiteSetting.oauth2_blender_id_scope
                         end
                       }
   end
 
   def basic_auth_header
-    "Basic " + Base64.strict_encode64("#{SiteSetting.oauth2_client_id}:#{SiteSetting.oauth2_client_secret}")
+    "Basic " + Base64.strict_encode64("#{SiteSetting.oauth2_blender_id_client_id}:#{SiteSetting.oauth2_blender_id_client_secret}")
   end
 
   def walk_path(fragment, segments)
@@ -71,7 +71,7 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
   end
 
   def log(info)
-    Rails.logger.warn("Blender ID OAuth2 Debugging: #{info}") if SiteSetting.oauth2_debug_auth
+    Rails.logger.warn("Blender ID OAuth2 Debugging: #{info}") if SiteSetting.oauth2_blender_id_debug_auth
   end
 
   def fetch_user_details(token, id)
@@ -135,7 +135,7 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
   end
 
   def enabled?
-    SiteSetting.oauth2_enabled
+    SiteSetting.oauth2_blender_id_enabled
   end
 end
 
