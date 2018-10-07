@@ -1,8 +1,8 @@
-# name: discourse-oauth2-basic
-# about: Generic OAuth2 Plugin
-# version: 0.3
-# authors: Robin Ward
-# url: https://github.com/discourse/discourse-oauth2-basic
+# name: discourse-oauth2-blender-id
+# about: Blender ID OAuth Plugin
+# version: 0.1
+# authors: Francesco Siddi
+# url: https://github.com/fsiddi/discourse-oauth2-blender-id
 
 require_dependency 'auth/oauth2_authenticator.rb'
 
