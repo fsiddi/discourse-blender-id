@@ -8,8 +8,8 @@ require_dependency 'auth/oauth2_authenticator.rb'
 
 enabled_site_setting :oauth2_enabled
 
-class ::OmniAuth::Strategies::Oauth2Basic < ::OmniAuth::Strategies::OAuth2
-  option :name, "oauth2_basic"
+class ::OmniAuth::Strategies::Oauth2BlenderId < ::OmniAuth::Strategies::OAuth2
+  option :name, "oauth2_blender_id"
   info do
     {
       id: access_token['id']
@@ -21,25 +21,23 @@ class ::OmniAuth::Strategies::Oauth2Basic < ::OmniAuth::Strategies::OAuth2
   end
 end
 
-class OAuth2BasicAuthenticator < ::Auth::OAuth2Authenticator
+class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
   def register_middleware(omniauth)
-    omniauth.provider :oauth2_basic,
-                      name: 'oauth2_basic',
+    omniauth.provider :oauth2_blender_id,
+                      name: 'oauth2_blender_id',
                       setup: lambda { |env|
                         opts = env['omniauth.strategy'].options
                         opts[:client_id] = SiteSetting.oauth2_client_id
                         opts[:client_secret] = SiteSetting.oauth2_client_secret
                         opts[:provider_ignores_state] = false
                         opts[:client_options] = {
-                          authorize_url: SiteSetting.oauth2_authorize_url,
-                          token_url: SiteSetting.oauth2_token_url,
-                          token_method: SiteSetting.oauth2_token_url_method.downcase.to_sym
+                          authorize_url: "#{SiteSetting.auth2_blender_id_url}oauth/authorize",
+                          token_url: "#{SiteSetting.auth2_blender_id_url}oauth/token",
+                          token_method: "POST"
                         }
                         opts[:authorize_options] = SiteSetting.oauth2_authorize_options.split("|").map(&:to_sym)
+                        opts[:token_params] = { headers: { 'Authorization' => basic_auth_header } }
 
-                        if SiteSetting.oauth2_send_auth_header?
-                          opts[:token_params] = { headers: { 'Authorization' => basic_auth_header } }
-                        end
                         unless SiteSetting.oauth2_scope.blank?
                           opts[:scope] = SiteSetting.oauth2_scope
                         end
@@ -73,25 +71,16 @@ class OAuth2BasicAuthenticator < ::Auth::OAuth2Authenticator
   end
 
   def log(info)
-    Rails.logger.warn("OAuth2 Debugging: #{info}") if SiteSetting.oauth2_debug_auth
+    Rails.logger.warn("Blender ID OAuth2 Debugging: #{info}") if SiteSetting.oauth2_debug_auth
   end
 
   def fetch_user_details(token, id)
-    user_json_url = SiteSetting.oauth2_user_json_url.sub(':token', token.to_s).sub(':id', id.to_s)
-    user_json_method = SiteSetting.oauth2_user_json_url_method
+    user_json_url = "#{SiteSetting.auth2_blender_id_url}api/me",
 
-    log("user_json_url: #{user_json_method} #{user_json_url}")
+    log("user_json_url: GET #{user_json_url}")
 
     bearer_token = "Bearer #{token}"
-    user_json_response =
-      if user_json_method.downcase.to_sym == :post
-        Net::HTTP
-          .post_form(URI(user_json_url), { 'Authorization' => bearer_token })
-          .body
-      else
-        open(user_json_url, 'Authorization' => bearer_token).read
-      end
-
+    user_json_response = open(user_json_url, 'Authorization' => bearer_token).read
     user_json = JSON.parse(user_json_response)
 
     log("user_json: #{user_json}")
@@ -118,16 +107,16 @@ class OAuth2BasicAuthenticator < ::Auth::OAuth2Authenticator
     result.name = user_details[:name]
     result.username = user_details[:username]
     result.email = user_details[:email]
-    result.email_valid = result.email.present? && SiteSetting.oauth2_email_verified?
+    result.email_valid = result.email.present?
     avatar_url = user_details[:avatar]
 
-    current_info = ::PluginStore.get("oauth2_basic", "oauth2_basic_user_#{user_details[:user_id]}")
+    current_info = ::PluginStore.get("oauth2_blender_id", "oauth2_blender_id_user_#{user_details[:user_id]}")
     if current_info
       result.user = User.where(id: current_info[:user_id]).first
-    elsif SiteSetting.oauth2_email_verified?
+    else
       result.user = User.find_by_email(result.email)
       if result.user && user_details[:user_id]
-        ::PluginStore.set("oauth2_basic", "oauth2_basic_user_#{user_details[:user_id]}", user_id: result.user.id)
+        ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{user_details[:user_id]}", user_id: result.user.id)
       end
     end
 
@@ -137,12 +126,12 @@ class OAuth2BasicAuthenticator < ::Auth::OAuth2Authenticator
       override_gravatar: SiteSetting.sso_overrides_avatar
     ) if result.user && avatar_url.present?
 
-    result.extra_data = { oauth2_basic_user_id: user_details[:user_id] }
+    result.extra_data = { oauth2_blender_id_user_id: user_details[:user_id] }
     result
   end
 
   def after_create_account(user, auth)
-    ::PluginStore.set("oauth2_basic", "oauth2_basic_user_#{auth[:extra_data][:oauth2_basic_user_id]}", user_id: user.id)
+    ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{auth[:extra_data][:oauth2_blender_id_user_id]}", user_id: user.id)
   end
 
   def enabled?
@@ -152,14 +141,14 @@ end
 
 auth_provider title_setting: "oauth2_button_title",
               enabled_setting: "oauth2_enabled",
-              authenticator: OAuth2BasicAuthenticator.new('oauth2_basic'),
+              authenticator: Oauth2BlenderIdAuthenticator.new('oauth2_blender_id'),
               message: "OAuth2",
               full_screen_login_setting: "oauth2_full_screen_login"
 
 
 register_css <<CSS
 
-  button.btn-social.oauth2_basic {
+  button.btn-social.oauth2_blender_id {
     background-color: #6d6d6d;
   }
 
