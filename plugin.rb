@@ -33,7 +33,7 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
                         opts[:client_options] = {
                           authorize_url: "#{SiteSetting.oauth2_blender_id_url}oauth/authorize",
                           token_url: "#{SiteSetting.oauth2_blender_id_url}oauth/token",
-                          token_method: "POST"
+                          token_method: "post"
                         }
                         opts[:authorize_options] = SiteSetting.oauth2_blender_id_authorize_options.split("|").map(&:to_sym)
                         opts[:token_params] = { headers: { 'Authorization' => basic_auth_header } }
