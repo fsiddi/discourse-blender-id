@@ -213,10 +213,12 @@ class OAuth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
 end
 
 after_initialize do
-  class ::UpdateJob < Jobs::Scheduled
-    every 5.seconds
-    def execute(args)
-      OAuth2BlenderIdUtils.new.badge_grant
+  module OAuth2BlenderIdUtils
+    class BlenderIdBadgesUpdateJob < Jobs::Scheduled
+      every 5.seconds
+      def execute(args)
+        OAuth2BlenderIdUtils.badge_grant
+      end
     end
   end
 end
