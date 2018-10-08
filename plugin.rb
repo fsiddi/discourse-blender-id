@@ -116,7 +116,7 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
     else
       result.user = User.find_by_email(result.email)
       if result.user && user_details[:user_id]
-        ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{user_details[:user_id]}", user_id: result.user.id)
+        ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{user_details[:user_id]}", {user_id: result.user.id, auth: auth.to_hash})
       end
     end
 
@@ -131,7 +131,7 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
   end
 
   def after_create_account(user, auth)
-    ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{auth[:extra_data][:oauth2_blender_id_user_id]}", user_id: user.id)
+    ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{auth[:extra_data][:oauth2_blender_id_user_id]}", {user_id: result.user.id, auth: auth.to_hash})
   end
 
   def enabled?
