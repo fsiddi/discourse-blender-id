@@ -120,8 +120,10 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
     badges.each do |key, value|
       log("Processing badge: #{key}")
       unless b = Badge.find_by(name: value['label'])
+        image = value.has_key?('image') ? h['image'] : nil
         b = Badge.create!(name: value['label'],
           description: value['label'],
+          image: image,
           badge_type_id: 1)
       end
       BadgeGranter.grant(b, user)
