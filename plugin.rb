@@ -113,6 +113,8 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
     current_info = ::PluginStore.get("oauth2_blender_id", "oauth2_blender_id_user_#{user_details[:user_id]}")
     if current_info
       result.user = User.where(id: current_info[:user_id]).first
+      # Update OAuth credentials
+      ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{user_details[:user_id]}", {user_id: result.user.id, auth: auth.to_hash})
     else
       result.user = User.find_by_email(result.email)
       if result.user && user_details[:user_id]
