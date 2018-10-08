@@ -74,14 +74,16 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
     Rails.logger.warn("Blender ID OAuth2 Debugging: #{info}") if SiteSetting.oauth2_blender_id_debug_auth
   end
 
-  def fetch_user_details(token, id)
-    user_json_url = "#{SiteSetting.oauth2_blender_id_url}api/me"
-
-    log("user_json_url: GET #{user_json_url}")
-
+  def query_api_endpoint(token, endpoint)
+    full_url = "#{SiteSetting.oauth2_blender_id_url}api/#{endpoint}"
+    log("full_url: GET #{full_url}")
     bearer_token = "Bearer #{token}"
-    user_json_response = open(user_json_url, 'Authorization' => bearer_token).read
-    user_json = JSON.parse(user_json_response)
+    json_response = open(full_url, 'Authorization' => bearer_token).read
+    return JSON.parse(json_response)
+  end
+
+  def fetch_user_details(token, id)
+    user_json = query_api_endpoint(token, "me")
 
     log("user_json: #{user_json}")
 
@@ -95,6 +97,11 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
     end
 
     result
+  end
+
+  def fetch_user_badges(token, id)
+    user_badges_json = query_api_endpoint(token, "badges/#{id}")
+    log("user_badges_json: #{user_badges_json}")
   end
 
   def store_oauth_user_credentials(user_id, oauth_user_id, credentials)
@@ -119,6 +126,8 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
       result.user = User.where(id: current_info[:user_id]).first
       # Update OAuth credentials
       store_oauth_user_credentials(result.user.id, user_details[:user_id], auth['credentials'])
+      # Update badges
+      user_badges = fetch_user_badges(token, auth['info'][:id])
     else
       result.user = User.find_by_email(result.email)
       if result.user && user_details[:user_id]
