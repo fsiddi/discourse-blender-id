@@ -9,16 +9,16 @@ require_dependency 'auth/oauth2_authenticator.rb'
 enabled_site_setting :oauth2_blender_id_enabled
 
 module OAuth2BlenderIdUtils
+  def log(info)
+    Rails.logger.warn("Blender ID OAuth2 Debugging: #{info}") if SiteSetting.oauth2_blender_id_debug_auth
+  end
+
   def self.badge_grant!
     PluginStoreRow.where(plugin_name: 'discourse-oauth2-blender-id')
       .where("key LIKE 'oauth2_blender_id_user_%'")
       .map do |psr|
-        psr.value
+        log("Mapping oauth2_blender_id_user_: #{psr.value}")
       end
-  end
-
-  def log(info)
-    Rails.logger.warn("Blender ID OAuth2 Debugging: #{info}") if SiteSetting.oauth2_blender_id_debug_auth
   end
 
   def query_api_endpoint(token, endpoint)
@@ -208,6 +208,18 @@ class OAuth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
 
   def enabled?
     SiteSetting.oauth2_blender_id_enabled
+  end
+end
+
+after_initialize do
+  module OAuth2BlenderIdUtils
+    class UpdateJob < ::Jobs::Scheduled
+      every 1.minute
+
+      def execute(args)
+        OAuth2BlenderIdUtils.badge_grant!
+      end
+    end
   end
 end
 
