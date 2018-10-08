@@ -84,6 +84,11 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
     Rails.logger.warn("Blender ID OAuth2 Debugging: #{info}") if SiteSetting.oauth2_blender_id_debug_auth
   end
 
+  def get_blender_id_badges
+    # TODO(fsiddi): Turn this into a Blender ID query
+    return ['Blender Network Member', 'Blender Cloud Subscriber']
+  end
+
   def query_api_endpoint(token, endpoint)
     api_url = "#{SiteSetting.oauth2_blender_id_url}api/#{endpoint}"
     log("api_url: GET #{api_url}")
@@ -109,7 +114,6 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
     result
   end
 
-
   def fetch_user_badges(token, id)
     user_badges_json = query_api_endpoint(token, "badges/#{id}")
     log("user_badges_json: #{user_badges_json['badges']}")
@@ -117,8 +121,12 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
   end
 
   def update_user_badges(badges, user)
+    all_badges = get_blender_id_badges
+    incoming_badges = Array.new()
     badges.each do |key, value|
       log("Processing badge: #{key}")
+      # Make sure the badge exists in Discourse
+      # TODO(fsiddi): Update the badge if something changed (e.g. image or description)
       unless b = Badge.find_by(name: value['label'])
         image = value.has_key?('image') ? value['image'] : nil
         b = Badge.create!(name: value['label'],
@@ -126,10 +134,17 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
           image: image,
           badge_type_id: 1)
       end
+      # Assign the badge (ignoring if the user already has it)
       BadgeGranter.grant(b, user)
+      # Add to list for comparing with all_badges later
+      incoming_badges << value['label']
     end
-  end  
+    
+    # Find and remove old badges (all_badges - incoming_badges)
+    to_remove_badges = all_badges - incoming_badges
+    to_remove_badges.each { |b| BadgeGranter.revoke(b, user) }
 
+  end 
 
   def store_oauth_user_credentials(user_id, oauth_user_id, credentials)
     ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{oauth_user_id}", {user_id: user_id, credentials: credentials.to_hash})
