@@ -14,6 +14,11 @@ module OAuth2BlenderIdUtils
     Rails.logger.warn("Blender ID OAuth2 Debugging: #{info}") if SiteSetting.oauth2_blender_id_debug_auth
   end
 
+  def get_blender_id_badges
+    # TODO(fsiddi): Turn this into a Blender ID query
+    return ['Blender Network Member', 'Blender Cloud Subscriber']
+  end
+
   def badge_grant
     log("Granting badges")
     rows = PluginStoreRow.where('plugin_name = ? AND key LIKE ?', 'oauth2_blender_id', 'oauth2_blender_id_user_%').to_a
@@ -140,11 +145,6 @@ class OAuth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
       val = walk_path(user_json, segments)
       result[prop] = val if val.present?
     end
-  end
-
-  def get_blender_id_badges
-    # TODO(fsiddi): Turn this into a Blender ID query
-    return ['Blender Network Member', 'Blender Cloud Subscriber']
   end
 
   def fetch_user_details(token)
