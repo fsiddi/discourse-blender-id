@@ -163,7 +163,6 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
 
   def after_create_account(user, auth)
     store_oauth_user_credentials(user.id, auth[:extra_data][:oauth2_blender_id_user_id], auth['credentials'])
-    # ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{auth[:extra_data][:oauth2_blender_id_user_id]}", {user_id: result.user.id, credentials: auth['credentials'].to_hash})
   end
 
   def enabled?
