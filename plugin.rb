@@ -9,11 +9,12 @@ require_dependency 'auth/oauth2_authenticator.rb'
 enabled_site_setting :oauth2_blender_id_enabled
 
 module OAuth2BlenderIdUtils
-  def self.log(info)
+  extend self
+  def log(info)
     Rails.logger.warn("Blender ID OAuth2 Debugging: #{info}") if SiteSetting.oauth2_blender_id_debug_auth
   end
 
-  def self.badge_grant
+  def badge_grant
     log("Granting badges")
     rows = PluginStoreRow.where('plugin_name = ? AND key LIKE ?', 'oauth2_blender_id', 'oauth2_blender_id_user_%').to_a
     # ps = Hash[rows.map { |row| [row.key, PluginStore.cast_value(row.type_name, row.value)] }]
@@ -28,7 +29,7 @@ module OAuth2BlenderIdUtils
     end
   end
 
-  def self.query_api_endpoint(token, endpoint)
+  def query_api_endpoint(token, endpoint)
     api_url = "#{SiteSetting.oauth2_blender_id_url}api/#{endpoint}"
     log("api_url: GET #{api_url}")
     bearer_token = "Bearer #{token}"
@@ -36,13 +37,13 @@ module OAuth2BlenderIdUtils
     return JSON.parse(json_response)
   end
 
-  def self.fetch_user_badges(token, id)
+  def fetch_user_badges(token, id)
     user_badges_json = query_api_endpoint(token, "badges/#{id}")
     log("user_badges_json: #{user_badges_json['badges']}")
     return user_badges_json['badges']
   end
 
-  def self.update_user_badges(badges, user)
+  def update_user_badges(badges, user)
     all_badges = get_blender_id_badges
     incoming_badges = Array.new()
     badges.each do |key, value|
