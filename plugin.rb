@@ -15,11 +15,10 @@ module OAuth2BlenderIdUtils
 
   def self.badge_grant
     log("Granting badges")
-    # PluginStoreRow.where(plugin_name: 'discourse-oauth2-blender-id')
-    #   .where("key LIKE 'oauth2_blender_id_user_%'")
-    #   .map do |psr|
-    #     log("Mapping oauth2_blender_id_user_: #{psr.value}")
-    #   end
+    ps = PluginStore.get_all(plugin_name: 'discourse-oauth2-blender-id')
+    ps.each do |r|
+      log("Mapping oauth2_blender_id_user_: #{r}")
+    end
   end
 
   def query_api_endpoint(token, endpoint)
