@@ -107,7 +107,7 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
   end
 
   def update_user_badges(badges, user)
-    user_badges_json['badges'].each do |key, value|
+    badges.each do |key, value|
       log("#{key}: #{value}")
       # unless b = Badge.find_by(name: key)
       #   b = Badge.create!(name: key,
