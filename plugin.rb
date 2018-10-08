@@ -126,8 +126,8 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
       result.user = User.where(id: current_info[:user_id]).first
       # Update OAuth credentials
       store_oauth_user_credentials(result.user.id, user_details[:user_id], auth['credentials'])
-      # Update badges
-      user_badges = fetch_user_badges(token, result.user.id)
+      # Fetch badges
+      user_badges = fetch_user_badges(token, user_details[:user_id])
     else
       result.user = User.find_by_email(result.email)
       if result.user && user_details[:user_id]
