@@ -75,10 +75,10 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
   end
 
   def query_api_endpoint(token, endpoint)
-    full_url = "#{SiteSetting.oauth2_blender_id_url}api/#{endpoint}"
-    log("full_url: GET #{full_url}")
+    api_url = "#{SiteSetting.oauth2_blender_id_url}api/#{endpoint}"
+    log("api_url: GET #{api_url}")
     bearer_token = "Bearer #{token}"
-    json_response = open(full_url, 'Authorization' => bearer_token).read
+    json_response = open(api_url, 'Authorization' => bearer_token).read
     return JSON.parse(json_response)
   end
 
