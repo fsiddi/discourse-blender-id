@@ -75,7 +75,7 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
   end
 
   def fetch_user_details(token, id)
-    user_json_url = "#{SiteSetting.oauth2_blender_id_url}api/me",
+    user_json_url = "#{SiteSetting.oauth2_blender_id_url}api/me"
 
     log("user_json_url: GET #{user_json_url}")
 
