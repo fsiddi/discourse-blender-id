@@ -139,12 +139,20 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
       # Add to list for comparing with all_badges later
       incoming_badges << value['label']
     end
-    
+
     # Find and remove old badges (all_badges - incoming_badges)
     to_remove_badges = all_badges - incoming_badges
-    to_remove_badges.each { |b| BadgeGranter.revoke(b, user) }
+    to_remove_badges.each { |badge_name|
+      b = Badge.find_by(name: badge_name)
+      if b
+        ub = UserBadge.find_by(badge_id: b.id, user_id: user.id)
+        if ub
+          BadgeGranter.revoke(ub)
+        end
+      end
+    }
 
-  end 
+  end
 
   def store_oauth_user_credentials(user_id, oauth_user_id, credentials)
     ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{oauth_user_id}", {user_id: user_id, credentials: credentials.to_hash})
