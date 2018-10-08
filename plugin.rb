@@ -82,7 +82,7 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
     return JSON.parse(json_response)
   end
 
-  def fetch_user_details(token, id)
+  def fetch_user_details(token)
     user_json = query_api_endpoint(token, "me")
 
     log("user_json: #{user_json}")
@@ -113,7 +113,7 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
 
     result = Auth::Result.new
     token = auth['credentials']['token']
-    user_details = fetch_user_details(token, result.user.id)
+    user_details = fetch_user_details(token)
 
     result.name = user_details[:name]
     result.username = user_details[:username]
