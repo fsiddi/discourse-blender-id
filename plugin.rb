@@ -15,7 +15,7 @@ module OAuth2BlenderIdUtils
 
   def self.badge_grant
     log("Granting badges")
-    ps = PluginStore.get_all(plugin_name: 'discourse-oauth2-blender-id')
+    ps = PluginStore.get_all(plugin_name: 'discourse-oauth2-blender-id', keys: 'oauth2_blender_id_user_%')
     ps.each do |r|
       log("Mapping oauth2_blender_id_user_: #{r}")
     end
