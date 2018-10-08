@@ -6,7 +6,17 @@
 
 require_dependency 'auth/oauth2_authenticator.rb'
 
-enabled_site_setting :oauth2_enabled
+enabled_site_setting :oauth2_blender_id_enabled
+
+module ::OAuth2Operations
+  def self.badge_grant!
+      PluginStoreRow.where(plugin_name: 'discourse-oauth2-blender-id')
+        .where("key LIKE 'oauth2_blender_id_user_%'")
+        .map do |psr|
+          psr.value
+        end
+    end
+end
 
 class ::OmniAuth::Strategies::Oauth2BlenderId < ::OmniAuth::Strategies::OAuth2
   option :name, "oauth2_blender_id"
