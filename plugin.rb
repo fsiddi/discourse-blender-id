@@ -8,7 +8,7 @@ require_dependency 'auth/oauth2_authenticator.rb'
 
 enabled_site_setting :oauth2_blender_id_enabled
 
-module ::OAuth2Operations
+module OAuth2BlenderIdUtils
   def self.badge_grant!
     PluginStoreRow.where(plugin_name: 'discourse-oauth2-blender-id')
       .where("key LIKE 'oauth2_blender_id_user_%'")
@@ -19,6 +19,53 @@ module ::OAuth2Operations
 
   def log(info)
     Rails.logger.warn("Blender ID OAuth2 Debugging: #{info}") if SiteSetting.oauth2_blender_id_debug_auth
+  end
+
+  def query_api_endpoint(token, endpoint)
+    api_url = "#{SiteSetting.oauth2_blender_id_url}api/#{endpoint}"
+    log("api_url: GET #{api_url}")
+    bearer_token = "Bearer #{token}"
+    json_response = open(api_url, 'Authorization' => bearer_token).read
+    return JSON.parse(json_response)
+  end
+
+  def fetch_user_badges(token, id)
+    user_badges_json = query_api_endpoint(token, "badges/#{id}")
+    log("user_badges_json: #{user_badges_json['badges']}")
+    return user_badges_json['badges']
+  end
+
+  def update_user_badges(badges, user)
+    all_badges = get_blender_id_badges
+    incoming_badges = Array.new()
+    badges.each do |key, value|
+      log("Processing badge: #{key}")
+      # Make sure the badge exists in Discourse
+      # TODO(fsiddi): Update the badge if something changed (e.g. image or description)
+      unless b = Badge.find_by(name: value['label'])
+        image = value.has_key?('image') ? value['image'] : nil
+        b = Badge.create!(name: value['label'],
+          description: value['label'],
+          image: image,
+          badge_type_id: 1)
+      end
+      # Assign the badge (ignoring if the user already has it)
+      BadgeGranter.grant(b, user)
+      # Add to list for comparing with all_badges later
+      incoming_badges << value['label']
+    end
+
+    # Find and remove old badges (all_badges - incoming_badges)
+    to_remove_badges = all_badges - incoming_badges
+    to_remove_badges.each { |badge_name|
+      b = Badge.find_by(name: badge_name)
+      if b
+        ub = UserBadge.find_by(badge_id: b.id, user_id: user.id)
+        if ub
+          BadgeGranter.revoke(ub)
+        end
+      end
+    }
   end
 
 end
@@ -36,8 +83,8 @@ class ::OmniAuth::Strategies::Oauth2BlenderId < ::OmniAuth::Strategies::OAuth2
   end
 end
 
-class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
-  include ::OAuth2Operations
+class OAuth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
+  include OAuth2BlenderIdUtils
 
   def register_middleware(omniauth)
     omniauth.provider :oauth2_blender_id,
@@ -92,14 +139,6 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
     return ['Blender Network Member', 'Blender Cloud Subscriber']
   end
 
-  def query_api_endpoint(token, endpoint)
-    api_url = "#{SiteSetting.oauth2_blender_id_url}api/#{endpoint}"
-    log("api_url: GET #{api_url}")
-    bearer_token = "Bearer #{token}"
-    json_response = open(api_url, 'Authorization' => bearer_token).read
-    return JSON.parse(json_response)
-  end
-
   def fetch_user_details(token)
     user_json = query_api_endpoint(token, "me")
 
@@ -115,46 +154,6 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
     end
 
     result
-  end
-
-  def fetch_user_badges(token, id)
-    user_badges_json = query_api_endpoint(token, "badges/#{id}")
-    log("user_badges_json: #{user_badges_json['badges']}")
-    return user_badges_json['badges']
-  end
-
-  def update_user_badges(badges, user)
-    all_badges = get_blender_id_badges
-    incoming_badges = Array.new()
-    badges.each do |key, value|
-      log("Processing badge: #{key}")
-      # Make sure the badge exists in Discourse
-      # TODO(fsiddi): Update the badge if something changed (e.g. image or description)
-      unless b = Badge.find_by(name: value['label'])
-        image = value.has_key?('image') ? value['image'] : nil
-        b = Badge.create!(name: value['label'],
-          description: value['label'],
-          image: image,
-          badge_type_id: 1)
-      end
-      # Assign the badge (ignoring if the user already has it)
-      BadgeGranter.grant(b, user)
-      # Add to list for comparing with all_badges later
-      incoming_badges << value['label']
-    end
-
-    # Find and remove old badges (all_badges - incoming_badges)
-    to_remove_badges = all_badges - incoming_badges
-    to_remove_badges.each { |badge_name|
-      b = Badge.find_by(name: badge_name)
-      if b
-        ub = UserBadge.find_by(badge_id: b.id, user_id: user.id)
-        if ub
-          BadgeGranter.revoke(ub)
-        end
-      end
-    }
-
   end
 
   def store_oauth_user_credentials(user_id, oauth_user_id, credentials)
@@ -183,9 +182,13 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
       badges = fetch_user_badges(token, user_details[:user_id])
       update_user_badges(badges, result.user)
     else
+      # Look for existing user
       result.user = User.find_by_email(result.email)
       if result.user && user_details[:user_id]
         store_oauth_user_credentials(result.user.id, user_details[:user_id], auth['credentials'])
+        # Update user badges
+        badges = fetch_user_badges(token, user_details[:user_id])
+        update_user_badges(badges, result.user)
       end
     end
 
@@ -210,7 +213,7 @@ end
 
 auth_provider title_setting: "oauth2_button_title",
               enabled_setting: "oauth2_enabled",
-              authenticator: Oauth2BlenderIdAuthenticator.new('oauth2_blender_id'),
+              authenticator: OAuth2BlenderIdAuthenticator.new('oauth2_blender_id'),
               message: "OAuth2",
               full_screen_login_setting: "oauth2_full_screen_login"
 
