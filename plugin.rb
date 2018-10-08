@@ -16,11 +16,15 @@ module OAuth2BlenderIdUtils
   def self.badge_grant
     log("Granting badges")
     rows = PluginStoreRow.where('plugin_name = ? AND key LIKE ?', 'oauth2_blender_id', 'oauth2_blender_id_user_%').to_a
-    ps = Hash[rows.map { |row| [row.key, PluginStore.cast_value(row.type_name, row.value)] }]
+    # ps = Hash[rows.map { |row| [row.key, PluginStore.cast_value(row.type_name, row.value)] }]
     # ps = PluginStore.get('oauth2_blender_id','oauth2_blender_id_user_2338')
-    log("Friend: #{ps}")
-    ps.each do |r|
-      log("Mapping oauth2_blender_id_user_: #{r}")
+    # log("Friend: #{ps}")
+    rows.each do |row|
+      ps_row = PluginStore.cast_value(row.type_name, row.value)
+      user_badges = fetch_user_badges(ps_row['credentials']['token'], ps_row['oauth_user_id'])
+      user = User.where(id: ps_row['user_id']).first
+      log("Updating badges for: #{user.id}")
+      update_user_badges(user_badges, user)
     end
   end
 
@@ -160,7 +164,8 @@ class OAuth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
   end
 
   def store_oauth_user_credentials(user_id, oauth_user_id, credentials)
-    ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{oauth_user_id}", {user_id: user_id, credentials: credentials.to_hash})
+    ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{oauth_user_id}", {
+      user_id: user_id, oaut_user_id: oauth_user_id.to_s, credentials: credentials.to_hash})
   end
 
   def after_authenticate(auth)
