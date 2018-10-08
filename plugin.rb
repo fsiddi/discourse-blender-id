@@ -9,11 +9,11 @@ require_dependency 'auth/oauth2_authenticator.rb'
 enabled_site_setting :oauth2_blender_id_enabled
 
 module OAuth2BlenderIdUtils
-  def log(info)
+  def self.log(info)
     Rails.logger.warn("Blender ID OAuth2 Debugging: #{info}") if SiteSetting.oauth2_blender_id_debug_auth
   end
 
-  def badge_grant
+  def self.badge_grant
     log("Granting badges")
     PluginStoreRow.where(plugin_name: 'discourse-oauth2-blender-id')
       .where("key LIKE 'oauth2_blender_id_user_%'")
@@ -213,12 +213,10 @@ class OAuth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
 end
 
 after_initialize do
-  module OAuth2BlenderIdUtils
-    class BlenderIdBadgesUpdateJob < Jobs::Scheduled
-      every 5.seconds
-      def execute(args)
-        OAuth2BlenderIdUtils.badge_grant
-      end
+  class BlenderIdBadgesUpdateJob < Jobs::Scheduled
+    every 5.seconds
+    def execute(args)
+      OAuth2BlenderIdUtils.badge_grant
     end
   end
 end
