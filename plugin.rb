@@ -97,6 +97,10 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
     result
   end
 
+  def store_oauth_user_credentials(user_id, oauth_user_id, credentials)
+    ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{oauth_user_id}", {user_id: user_id, credentials: credentials.to_hash})
+  end
+
   def after_authenticate(auth)
     log("after_authenticate response: \n\ncreds: #{auth['credentials'].to_hash}\ninfo: #{auth['info'].to_hash}\nextra: #{auth['extra'].to_hash}")
 
@@ -114,11 +118,11 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
     if current_info
       result.user = User.where(id: current_info[:user_id]).first
       # Update OAuth credentials
-      ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{user_details[:user_id]}", {user_id: result.user.id, auth: auth.to_hash})
+      store_oauth_user_credentials(result.user.id, user_details[:user_id], auth['credentials'])
     else
       result.user = User.find_by_email(result.email)
       if result.user && user_details[:user_id]
-        ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{user_details[:user_id]}", {user_id: result.user.id, auth: auth.to_hash})
+        store_oauth_user_credentials(result.user.id, user_details[:user_id], auth['credentials'])
       end
     end
 
@@ -133,7 +137,8 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
   end
 
   def after_create_account(user, auth)
-    ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{auth[:extra_data][:oauth2_blender_id_user_id]}", {user_id: result.user.id, credentials: auth['credentials'].to_hash})
+    store_oauth_user_credentials(user.id, auth[:extra_data][:oauth2_blender_id_user_id], auth['credentials'])
+    # ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{auth[:extra_data][:oauth2_blender_id_user_id]}", {user_id: result.user.id, credentials: auth['credentials'].to_hash})
   end
 
   def enabled?
