@@ -31,8 +31,8 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
                         opts[:client_secret] = SiteSetting.oauth2_blender_id_client_secret
                         opts[:provider_ignores_state] = false
                         opts[:client_options] = {
-                          authorize_url: "#{SiteSetting.auth2_blender_id_url}oauth/authorize",
-                          token_url: "#{SiteSetting.auth2_blender_id_url}oauth/token",
+                          authorize_url: "#{SiteSetting.oauth2_blender_id_url}oauth/authorize",
+                          token_url: "#{SiteSetting.oauth2_blender_id_url}oauth/token",
                           token_method: "POST"
                         }
                         opts[:authorize_options] = SiteSetting.oauth2_blender_id_authorize_options.split("|").map(&:to_sym)
@@ -75,7 +75,7 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
   end
 
   def fetch_user_details(token, id)
-    user_json_url = "#{SiteSetting.auth2_blender_id_url}api/me",
+    user_json_url = "#{SiteSetting.oauth2_blender_id_url}api/me",
 
     log("user_json_url: GET #{user_json_url}")
 
