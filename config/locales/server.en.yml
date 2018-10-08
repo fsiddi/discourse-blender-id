@@ -1,6 +1,6 @@
 en:
   site_settings:
-    oauth2_blender_id_enabled: "Custom OAuth2 is enabled"
+    oauth2_blender_id_enabled: "Oauth2 Blender ID is enabled"
     oauth2_blender_id_client_id: 'Client ID for custom OAuth2'
     oauth2_blender_id_client_secret: 'Client Secret for custom OAuth2'
     oauth2_blender_id_authorize_url: 'Authorization URL for OAuth2'
