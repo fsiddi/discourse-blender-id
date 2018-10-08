@@ -15,8 +15,8 @@ module OAuth2BlenderIdUtils
 
   def self.badge_grant
     log("Granting badges")
-    ps = PluginStore.get_all('oauth2_blender_id','oauth2_blender_id_user_%')
-    log("Friend: #{ps.length}")
+    ps = PluginStore.get('oauth2_blender_id','oauth2_blender_id_user_2338')
+    log("Friend: #{ps}")
     ps.each do |r|
       log("Mapping oauth2_blender_id_user_: #{r}")
     end
