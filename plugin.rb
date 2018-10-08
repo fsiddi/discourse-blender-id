@@ -16,6 +16,7 @@ module OAuth2BlenderIdUtils
   def self.badge_grant
     log("Granting badges")
     ps = PluginStore.get_all('discourse-oauth2-blender-id','oauth2_blender_id_user_%')
+    log("Friend: #{ps.length}")
     ps.each do |r|
       log("Mapping oauth2_blender_id_user_: #{r}")
     end
@@ -213,7 +214,7 @@ end
 
 after_initialize do
   class ::BlenderIdBadgesUpdateJob < Jobs::Scheduled
-    every 15.seconds
+    every 2.minutes
     def execute(args)
       OAuth2BlenderIdUtils.badge_grant
     end
