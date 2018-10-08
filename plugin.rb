@@ -108,13 +108,13 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
 
   def update_user_badges(badges, user)
     badges.each do |key, value|
-      log("#{key}: #{value}")
-      # unless b = Badge.find_by(name: key)
-      #   b = Badge.create!(name: key,
-      #     description: val['label']
-      #     badge_type_id: 1)
-      # end
-      # BadgeGranter.grant(b, user)
+      log("Processing badge: #{key}")
+      unless b = Badge.find_by(name: key)
+        b = Badge.create!(name: key,
+          description: value['label']
+          badge_type_id: 1)
+      end
+      BadgeGranter.grant(b, user)
     end
   end  
 
