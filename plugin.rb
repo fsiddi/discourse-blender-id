@@ -10,12 +10,17 @@ enabled_site_setting :oauth2_blender_id_enabled
 
 module ::OAuth2Operations
   def self.badge_grant!
-      PluginStoreRow.where(plugin_name: 'discourse-oauth2-blender-id')
-        .where("key LIKE 'oauth2_blender_id_user_%'")
-        .map do |psr|
-          psr.value
-        end
-    end
+    PluginStoreRow.where(plugin_name: 'discourse-oauth2-blender-id')
+      .where("key LIKE 'oauth2_blender_id_user_%'")
+      .map do |psr|
+        psr.value
+      end
+  end
+
+  def log(info)
+    Rails.logger.warn("Blender ID OAuth2 Debugging: #{info}") if SiteSetting.oauth2_blender_id_debug_auth
+  end
+
 end
 
 class ::OmniAuth::Strategies::Oauth2BlenderId < ::OmniAuth::Strategies::OAuth2
@@ -32,6 +37,8 @@ class ::OmniAuth::Strategies::Oauth2BlenderId < ::OmniAuth::Strategies::OAuth2
 end
 
 class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
+  include ::OAuth2Operations
+
   def register_middleware(omniauth)
     omniauth.provider :oauth2_blender_id,
                       name: 'oauth2_blender_id',
@@ -78,10 +85,6 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
       val = walk_path(user_json, segments)
       result[prop] = val if val.present?
     end
-  end
-
-  def log(info)
-    Rails.logger.warn("Blender ID OAuth2 Debugging: #{info}") if SiteSetting.oauth2_blender_id_debug_auth
   end
 
   def get_blender_id_badges
