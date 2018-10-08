@@ -13,8 +13,8 @@ module OAuth2BlenderIdUtils
     Rails.logger.warn("Blender ID OAuth2 Debugging: #{info}") if SiteSetting.oauth2_blender_id_debug_auth
   end
 
-  def self.badge_grant!
-    self.log("Granting badges")
+  def badge_grant
+    log("Granting badges")
     PluginStoreRow.where(plugin_name: 'discourse-oauth2-blender-id')
       .where("key LIKE 'oauth2_blender_id_user_%'")
       .map do |psr|
@@ -216,7 +216,7 @@ after_initialize do
   class ::UpdateJob < Jobs::Scheduled
     every 5.seconds
     def execute(args)
-      OAuth2BlenderIdUtils.badge_grant!
+      OAuth2BlenderIdUtils.new.badge_grant
     end
   end
 end
