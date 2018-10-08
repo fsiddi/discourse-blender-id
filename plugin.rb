@@ -14,6 +14,7 @@ module OAuth2BlenderIdUtils
   end
 
   def self.badge_grant!
+    log("Granting badges")
     PluginStoreRow.where(plugin_name: 'discourse-oauth2-blender-id')
       .where("key LIKE 'oauth2_blender_id_user_%'")
       .map do |psr|
@@ -212,13 +213,11 @@ class OAuth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
 end
 
 after_initialize do
-  module OAuth2BlenderIdUtils
-    class UpdateJob < ::Jobs::Scheduled
-      every 1.minute
-
-      def execute(args)
-        OAuth2BlenderIdUtils.badge_grant!
-      end
+  class UpdateJob < Jobs::Scheduled
+    every 2.seconds
+    def execute(args)
+      puts "THIS IS A TEST"
+      OAuth2BlenderIdUtils.badge_grant!
     end
   end
 end
