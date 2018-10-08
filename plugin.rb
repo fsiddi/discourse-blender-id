@@ -15,11 +15,11 @@ module OAuth2BlenderIdUtils
 
   def self.badge_grant
     log("Granting badges")
-    PluginStoreRow.where(plugin_name: 'discourse-oauth2-blender-id')
-      .where("key LIKE 'oauth2_blender_id_user_%'")
-      .map do |psr|
-        log("Mapping oauth2_blender_id_user_: #{psr.value}")
-      end
+    # PluginStoreRow.where(plugin_name: 'discourse-oauth2-blender-id')
+    #   .where("key LIKE 'oauth2_blender_id_user_%'")
+    #   .map do |psr|
+    #     log("Mapping oauth2_blender_id_user_: #{psr.value}")
+    #   end
   end
 
   def query_api_endpoint(token, endpoint)
@@ -213,8 +213,8 @@ class OAuth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
 end
 
 after_initialize do
-  class BlenderIdBadgesUpdateJob < Jobs::Scheduled
-    every 5.seconds
+  class ::BlenderIdBadgesUpdateJob < Jobs::Scheduled
+    every 15.seconds
     def execute(args)
       OAuth2BlenderIdUtils.badge_grant
     end
