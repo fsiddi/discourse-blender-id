@@ -28,7 +28,7 @@ module OAuth2BlenderIdUtils
     end
   end
 
-  def query_api_endpoint(token, endpoint)
+  def self.query_api_endpoint(token, endpoint)
     api_url = "#{SiteSetting.oauth2_blender_id_url}api/#{endpoint}"
     log("api_url: GET #{api_url}")
     bearer_token = "Bearer #{token}"
@@ -36,13 +36,13 @@ module OAuth2BlenderIdUtils
     return JSON.parse(json_response)
   end
 
-  def fetch_user_badges(token, id)
+  def self.fetch_user_badges(token, id)
     user_badges_json = query_api_endpoint(token, "badges/#{id}")
     log("user_badges_json: #{user_badges_json['badges']}")
     return user_badges_json['badges']
   end
 
-  def update_user_badges(badges, user)
+  def self.update_user_badges(badges, user)
     all_badges = get_blender_id_badges
     incoming_badges = Array.new()
     badges.each do |key, value|
