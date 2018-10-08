@@ -110,7 +110,7 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
     badges.each do |key, value|
       log("Processing badge: #{key}")
       unless b = Badge.find_by(name: value['label'])
-        b = Badge.create!(name: key,
+        b = Badge.create!(name: value['label'],
           description: value['label'],
           badge_type_id: 1)
       end
