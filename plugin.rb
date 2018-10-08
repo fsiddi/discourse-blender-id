@@ -99,10 +99,24 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
     result
   end
 
+
   def fetch_user_badges(token, id)
     user_badges_json = query_api_endpoint(token, "badges/#{id}")
-    log("user_badges_json: #{user_badges_json}")
+    log("user_badges_json: #{user_badges_json['badges']}")
+    return user_badges_json['badges']
   end
+
+  def update_user_badges(badges, user)
+    user_badges_json['badges'].each do |key, val|
+      unless b = Badge.find_by(name: key)
+        b = Badge.create!(name: key,
+          description: val['label']
+          badge_type_id: 1)
+      end
+      BadgeGranter.grant(b, user)
+    end
+  end  
+
 
   def store_oauth_user_credentials(user_id, oauth_user_id, credentials)
     ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{oauth_user_id}", {user_id: user_id, credentials: credentials.to_hash})
@@ -126,8 +140,9 @@ class Oauth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
       result.user = User.where(id: current_info[:user_id]).first
       # Update OAuth credentials
       store_oauth_user_credentials(result.user.id, user_details[:user_id], auth['credentials'])
-      # Fetch badges
-      user_badges = fetch_user_badges(token, user_details[:user_id])
+      # Update user badges
+      badges = fetch_user_badges(token, user_details[:user_id])
+      update_user_badges(badges, result.user)
     else
       result.user = User.find_by_email(result.email)
       if result.user && user_details[:user_id]
