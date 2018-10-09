@@ -98,7 +98,7 @@ module BlenderIdUtils
       badge_names_incoming << value['label']
     end
 
-    badge_names_all = get_blender_id_badges.to_s
+    badge_names_all = get_blender_id_badges.to_set
 
     # Combine all the exsiting badges with the incoming one
     # This is meant to automatically extend the list of existing badges
