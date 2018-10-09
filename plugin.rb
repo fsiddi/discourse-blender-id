@@ -10,6 +10,7 @@ enabled_site_setting :oauth2_blender_id_enabled
 
 module OAuth2BlenderIdUtils
   extend self
+
   def log(info)
     Rails.logger.warn("Blender ID OAuth2 Debugging: #{info}") if SiteSetting.oauth2_blender_id_debug_auth
   end
@@ -29,10 +30,12 @@ module OAuth2BlenderIdUtils
 
   def badge_grant
     log("Granting badges")
+    # Find all PluginStore rows related to the current plugin
+    # TODO(fsiddi): improve this query, buy filtering out values that do not include 'credentials' in the JSON
     rows = PluginStoreRow.where('plugin_name = ? AND key LIKE ?', 'oauth2_blender_id', 'oauth2_blender_id_user_%').to_a
     rows.each do |row|
       ps_row = PluginStore.cast_value(row.type_name, row.value)
-      # Skip if credentials are not found
+      # Skip if credentials are not found (see todo above for a possible improvement)
       next if not ps_row.key?("credentials")
       begin
         # Try to fetch user badges and handle possible failures. In particular, if the response status is 403,
@@ -42,6 +45,7 @@ module OAuth2BlenderIdUtils
         response = error.io
         Rails.logger.warn("Error fetching badges for user #{ps_row['oauth_user_id']}: #{response.status}")
         if response.status[0] == '403'
+          # Revoke credential is user is not authorized
           Rails.logger.warn("Removing expired or invalid credentials for user #{ps_row['oauth_user_id']}")
           store_oauth_user_credentials(ps_row['user_id'], ps_row['oauth_user_id'], nil)
         end
@@ -54,6 +58,7 @@ module OAuth2BlenderIdUtils
   end
 
   def query_api_endpoint(token, endpoint)
+    # Fetch JSON info from an api endpoint (this is the place where we talk to Blender ID)
     api_url = "#{SiteSetting.oauth2_blender_id_url}api/#{endpoint}"
     log("api_url: GET #{api_url}")
     bearer_token = "Bearer #{token}"
@@ -68,8 +73,9 @@ module OAuth2BlenderIdUtils
   end
 
   def update_user_badges(badges, user)
-    all_badges = get_blender_id_badges
-    incoming_badges = Array.new()
+    # Add or remove Blender ID badges
+    badge_names_all = get_blender_id_badges
+    badge_names_incoming = Array.new()
     badges.each do |key, value|
       log("Processing badge: #{key}")
       # Make sure the badge exists in Discourse
@@ -83,12 +89,12 @@ module OAuth2BlenderIdUtils
       end
       # Assign the badge (ignoring if the user already has it)
       BadgeGranter.grant(b, user)
-      # Add to list for comparing with all_badges later
-      incoming_badges << value['label']
+      # Add to list for comparing with badge_names_all later
+      badge_names_incoming << value['label']
     end
 
-    # Find and remove old badges (all_badges - incoming_badges)
-    to_remove_badges = all_badges - incoming_badges
+    # Find and remove old badges (badge_names_all - badge_names_incoming)
+    to_remove_badges = badge_names_all - badge_names_incoming
     to_remove_badges.each { |badge_name|
       b = Badge.find_by(name: badge_name)
       if b
@@ -240,7 +246,7 @@ end
 
 after_initialize do
   class ::BlenderIdBadgesUpdateJob < Jobs::Scheduled
-    every 2.minutes
+    every 30.minutes
     def execute(args)
       OAuth2BlenderIdUtils.badge_grant
     end
