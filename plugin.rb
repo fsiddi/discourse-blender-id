@@ -34,7 +34,8 @@ module OAuth2BlenderIdUtils
       # Skip if credentials are not found
       next if not ps_row.key?("credentials")
       begin
-        # Try to fetch user badges and handle possible failures
+        # Try to fetch user badges and handle possible failures. In particular, if the response status is 403,
+        # revoke the user OAuth credentials to prevent further queries in the future.
         user_badges = fetch_user_badges(ps_row['credentials']['token'], ps_row['oauth_user_id'])
       rescue OpenURI::HTTPError => error
         response = error.io
