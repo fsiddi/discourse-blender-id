@@ -19,16 +19,29 @@ module OAuth2BlenderIdUtils
     return ['Blender Network Member', 'Blender Cloud Subscriber']
   end
 
+  def store_oauth_user_credentials(user_id, oauth_user_id, credentials)
+    to_store = {user_id: user_id, oauth_user_id: oauth_user_id.to_s}
+    if credentials
+      to_store[credentials:] = credentials.to_hash
+    ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{oauth_user_id}", to_store)
+  end
+
   def badge_grant
     log("Granting badges")
     rows = PluginStoreRow.where('plugin_name = ? AND key LIKE ?', 'oauth2_blender_id', 'oauth2_blender_id_user_%').to_a
     rows.each do |row|
       ps_row = PluginStore.cast_value(row.type_name, row.value)
+      # Skip if credentials are not found
+      next if not ps_row.key?("credentials")
       begin
+        # Try to fetch user badges and handle possible failures
         user_badges = fetch_user_badges(ps_row['credentials']['token'], ps_row['oauth_user_id'])
       rescue OpenURI::HTTPError => error
         response = error.io
         Rails.logger.warn("Error fetching badges for user #{ps_row['oauth_user_id']}: #{response.status}")
+        if response.status[0] == '403'
+          Rails.logger.warn("Removing expired or invalid credentials for user #{ps_row['oauth_user_id']}")
+          store_oauth_user_credentials(ps_row['user_id'], ps_row['oauth_user_id'], nil)
         return
       end
       user = User.where(id: ps_row['user_id']).first
@@ -165,11 +178,6 @@ class OAuth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
     end
 
     result
-  end
-
-  def store_oauth_user_credentials(user_id, oauth_user_id, credentials)
-    ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{oauth_user_id}", {
-      user_id: user_id, oauth_user_id: oauth_user_id.to_s, credentials: credentials.to_hash})
   end
 
   def after_authenticate(auth)
