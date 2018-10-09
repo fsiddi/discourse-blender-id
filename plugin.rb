@@ -12,7 +12,7 @@ module BlenderIdUtils
   extend self
 
   def log(info)
-    Rails.logger.warn("Blender ID OAuth2 Debugging: #{info}") if SiteSetting.blender_id_debug_auth
+    Rails.logger.warn("Blender ID Debugging: #{info}") if SiteSetting.blender_id_debug_auth
   end
 
   def get_blender_id_badges
