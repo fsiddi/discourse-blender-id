@@ -5,7 +5,7 @@ require 'json'
 # Need to load plugin.rb to avoid:
 #
 # NameError:
-#   uninitialized constant Oauth2BlenderIdAuthenticator
+#   uninitialized constant BlenderIdAuthenticator
 #
 # And need to mock various methods to avoid:
 #
@@ -25,10 +25,10 @@ end
 
 require_relative '../plugin.rb'
 
-describe Oauth2BlenderIdAuthenticator do
+describe BlenderIdAuthenticator do
   context 'after_authenticate' do
     let(:user) { Fabricate(:user) }
-    let(:authenticator) { Oauth2BlenderIdAuthenticator.new('oauth2_blender_id') }
+    let(:authenticator) { BlenderIdAuthenticator.new('blender_id') }
 
     let(:auth) do
       { 'credentials' => { 'token': 'token' },
@@ -75,7 +75,7 @@ describe Oauth2BlenderIdAuthenticator do
   end
 
   it 'can walk json' do
-    authenticator = Oauth2BlenderIdAuthenticator.new('oauth2_blender_id')
+    authenticator = BlenderIdAuthenticator.new('blender_id')
     json_string = '{"user":{"id":1234,"email":{"address":"test@example.com"}}}'
     SiteSetting.oauth2_json_email_path = 'user.email.address'
     result = authenticator.json_walk({}, JSON.parse(json_string), :email)
@@ -84,7 +84,7 @@ describe Oauth2BlenderIdAuthenticator do
   end
 
   it 'can walk json that contains an array' do
-    authenticator = Oauth2BlenderIdAuthenticator.new('oauth2_blender_id')
+    authenticator = BlenderIdAuthenticator.new('blender_id')
     json_string = '{"email":"test@example.com","identities":[{"user_id":"123456789","provider":"auth0","isSocial":false}]}'
     SiteSetting.oauth2_json_user_id_path = 'identities.[].user_id'
     result = authenticator.json_walk({}, JSON.parse(json_string), :user_id)
@@ -93,7 +93,7 @@ describe Oauth2BlenderIdAuthenticator do
   end
 
   it 'can walk json and handle an empty array' do
-    authenticator = Oauth2BlenderIdAuthenticator.new('oauth2_blender_id')
+    authenticator = BlenderIdAuthenticator.new('blender_id')
     json_string = '{"email":"test@example.com","identities":[]}'
     SiteSetting.oauth2_json_user_id_path = 'identities.[].user_id'
     result = authenticator.json_walk({}, JSON.parse(json_string), :user_id)
@@ -102,7 +102,7 @@ describe Oauth2BlenderIdAuthenticator do
   end
 
   it 'can walk json and download avatar' do
-    authenticator = Oauth2BlenderIdAuthenticator.new('oauth2_blender_id')
+    authenticator = BlenderIdAuthenticator.new('blender_id')
     json_string = '{"user":{"avatar":"http://example.com/1.png"}}'
     SiteSetting.oauth2_json_avatar_path = 'user.avatar'
     result = authenticator.json_walk({}, JSON.parse(json_string), :avatar)

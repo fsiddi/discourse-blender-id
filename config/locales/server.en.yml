@@ -1,22 +1,22 @@
 en:
   site_settings:
-    oauth2_blender_id_enabled: "Oauth2 Blender ID is enabled"
-    oauth2_blender_id_client_id: 'Client ID for custom OAuth2'
-    oauth2_blender_id_client_secret: 'Client Secret for custom OAuth2'
-    oauth2_blender_id_authorize_url: 'Authorization URL for OAuth2'
-    oauth2_blender_id_token_url: 'Token URL for OAuth2'
-    oauth2_blender_id_token_url_method: 'Method used to fetch the Token URL'
-    oauth2_blender_id_user_json_url: 'URL to fetch user JSON for OAuth2 (note we replace :id with the id returned by OAuth call and :token with the token id)'
-    oauth2_blender_id_user_json_url_method: 'Method used to fetch the user JSON URL'
-    oauth2_blender_id_json_user_id_path: 'Path in the OAuth2 User JSON to the user id. eg: user.id'
-    oauth2_blender_id_json_username_path: 'Path in the OAuth2 User JSON to the username. eg: user.username'
-    oauth2_blender_id_json_name_path: "Path in the OAuth2 User JSON to the user's full: user.name.full"
-    oauth2_blender_id_json_email_path: "Path in the OAuth2 User JSON to the user's email: user.email.primary"
-    oauth2_blender_id_json_avatar_path: "Path in the Oauth2 User JSON to the user's avatar: user.avatar_url"
-    oauth2_blender_id_email_verified: "Check this if the OAuth2 site has verified the email"
-    oauth2_blender_id_send_auth_header: "Send the token as an HTTP Authorization header"
-    oauth2_blender_id_debug_auth: "Include rich debugging information in your logs"
-    oauth2_blender_id_authorize_options: "When authorizing request these options"
-    oauth2_blender_id_scope: "When authorizing request this scope"
-    oauth2_blender_id_button_title: "The text for the OAuth2 button"
-    oauth2_blender_id_full_screen_login: "Use main browser window instead of popup for login"
+    blender_id_enabled: "Oauth2 Blender ID is enabled"
+    blender_id_client_id: 'Client ID for custom OAuth2'
+    blender_id_client_secret: 'Client Secret for custom OAuth2'
+    blender_id_authorize_url: 'Authorization URL for OAuth2'
+    blender_id_token_url: 'Token URL for OAuth2'
+    blender_id_token_url_method: 'Method used to fetch the Token URL'
+    blender_id_user_json_url: 'URL to fetch user JSON for OAuth2 (note we replace :id with the id returned by OAuth call and :token with the token id)'
+    blender_id_user_json_url_method: 'Method used to fetch the user JSON URL'
+    blender_id_json_user_id_path: 'Path in the OAuth2 User JSON to the user id. eg: user.id'
+    blender_id_json_username_path: 'Path in the OAuth2 User JSON to the username. eg: user.username'
+    blender_id_json_name_path: "Path in the OAuth2 User JSON to the user's full: user.name.full"
+    blender_id_json_email_path: "Path in the OAuth2 User JSON to the user's email: user.email.primary"
+    blender_id_json_avatar_path: "Path in the Oauth2 User JSON to the user's avatar: user.avatar_url"
+    blender_id_email_verified: "Check this if the OAuth2 site has verified the email"
+    blender_id_send_auth_header: "Send the token as an HTTP Authorization header"
+    blender_id_debug_auth: "Include rich debugging information in your logs"
+    blender_id_authorize_options: "When authorizing request these options"
+    blender_id_scope: "When authorizing request this scope"
+    blender_id_button_title: "The text for the OAuth2 button"
+    blender_id_full_screen_login: "Use main browser window instead of popup for login"

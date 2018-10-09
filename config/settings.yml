@@ -1,26 +1,26 @@
 login:
-  oauth2_blender_id_enabled:
+  blender_id_enabled:
     default: false
     client: true
-  oauth2_blender_id_client_id: ''
-  oauth2_blender_id_client_secret: ''
-  oauth2_blender_id_url:
+  blender_id_client_id: ''
+  blender_id_client_secret: ''
+  blender_id_url:
     default: 'https://www.blender.org/id/'
     client: true
-  oauth2_blender_id_json_user_id_path: 'id'
-  oauth2_blender_id_json_username_path: 'nickname'
-  oauth2_blender_id_json_name_path: 'full_name'
-  oauth2_blender_id_json_email_path: 'email'
-  oauth2_blender_id_json_avatar_path: ''
-  oauth2_blender_id_debug_auth: false
-  oauth2_blender_id_authorize_options:
+  blender_id_json_user_id_path: 'id'
+  blender_id_json_username_path: 'nickname'
+  blender_id_json_name_path: 'full_name'
+  blender_id_json_email_path: 'email'
+  blender_id_json_avatar_path: ''
+  blender_id_debug_auth: false
+  blender_id_authorize_options:
     default: 'scope'
     type: list
-  oauth2_blender_id_scope:
+  blender_id_scope:
     default: 'email badge'
     client: true
-  oauth2_blender_id_button_title:
+  blender_id_button_title:
     default: 'with Blender ID'
     client: true
-  oauth2_blender_id_full_screen_login: true
+  blender_id_full_screen_login: true
 
