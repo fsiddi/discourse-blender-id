@@ -103,7 +103,7 @@ module BlenderIdUtils
     # Combine all the exsiting badges with the incoming one
     # This is meant to automatically extend the list of existing badges
     badge_names_all_updated = badge_names_all + badge_names_incoming
-    ::PluginStore.set("blender_id", "blender_id_badges", badge_names_all_update.to_a)
+    ::PluginStore.set("blender_id", "blender_id_badges", badge_names_all_updated.to_a)
 
     # Find and remove old badges
     to_remove_badges = badge_names_all_updated - badge_names_incoming
