@@ -22,7 +22,7 @@ module OAuth2BlenderIdUtils
   def store_oauth_user_credentials(user_id, oauth_user_id, credentials)
     to_store = {user_id: user_id, oauth_user_id: oauth_user_id.to_s}
     if credentials
-      to_store[credentials:] = credentials.to_hash
+      to_store['credentials'] = credentials.to_hash
     ::PluginStore.set("oauth2_blender_id", "oauth2_blender_id_user_#{oauth_user_id}", to_store)
   end
 
