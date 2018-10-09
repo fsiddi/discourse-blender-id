@@ -182,23 +182,27 @@ class OAuth2BlenderIdAuthenticator < ::Auth::OAuth2Authenticator
     result.email_valid = result.email.present?
     avatar_url = user_details[:avatar]
 
+    # Look for Oauth user info in Plugin Store
     current_info = ::PluginStore.get("oauth2_blender_id", "oauth2_blender_id_user_#{user_details[:user_id]}")
     if current_info
       result.user = User.where(id: current_info[:user_id]).first
+    else
+      # Look for OAuth user info in the Plugin Store for the (previously used) basic_oauth2 plugin
+      legacy_info = ::PluginStore.get("oauth2_basic", "oauth2_basic_user_#{user_details[:user_id]}")
+      if legacy_info
+        result.user = User.where(id: legacy_info[:user_id]).first
+      else
+        # Look for existing user
+        result.user = User.find_by_email(result.email)
+      end
+    end
+
+    if result.user && user_details[:user_id]
       # Update OAuth credentials
       store_oauth_user_credentials(result.user.id, user_details[:user_id], auth['credentials'])
       # Update user badges
       badges = fetch_user_badges(token, user_details[:user_id])
       update_user_badges(badges, result.user)
-    else
-      # Look for existing user
-      result.user = User.find_by_email(result.email)
-      if result.user && user_details[:user_id]
-        store_oauth_user_credentials(result.user.id, user_details[:user_id], auth['credentials'])
-        # Update user badges
-        badges = fetch_user_badges(token, user_details[:user_id])
-        update_user_badges(badges, result.user)
-      end
     end
 
     Jobs.enqueue(:download_avatar_from_url,
