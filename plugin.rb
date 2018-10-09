@@ -16,8 +16,12 @@ module BlenderIdUtils
   end
 
   def get_blender_id_badges
-    # TODO(fsiddi): Turn this into a Blender ID query
-    return ['Blender Network Member', 'Blender Cloud Subscriber']
+    # Get the existing badge names from Plugin Store
+    badges = ::PluginStore.get("blender_id", "blender_id_badges")
+    if not badges
+      return Array.new()
+    end
+    return badges
   end
 
   def store_oauth_user_credentials(user_id, oauth_user_id, credentials)
@@ -51,6 +55,7 @@ module BlenderIdUtils
         end
         return
       end
+    
       user = User.where(id: ps_row['user_id']).first
       log("Updating badges for User: #{user.id}")
       update_user_badges(user_badges, user)
@@ -74,8 +79,8 @@ module BlenderIdUtils
 
   def update_user_badges(badges, user)
     # Add or remove Blender ID badges
-    badge_names_all = get_blender_id_badges
-    badge_names_incoming = Array.new()
+    
+    badge_names_incoming = Set.new()
     badges.each do |key, value|
       log("Processing badge: #{key}")
       # Make sure the badge exists in Discourse
@@ -93,8 +98,15 @@ module BlenderIdUtils
       badge_names_incoming << value['label']
     end
 
-    # Find and remove old badges (badge_names_all - badge_names_incoming)
-    to_remove_badges = badge_names_all - badge_names_incoming
+    badge_names_all = get_blender_id_badges.to_set
+
+    # Combine all the exsiting badges with the incoming one
+    # This is meant to automatically extend the list of existing badges
+    badge_names_all_updated = badge_names_all + badge_names_incoming
+    ::PluginStore.set("blender_id", "blender_id_badges", badge_names_all_updated)
+
+    # Find and remove old badges
+    to_remove_badges = badge_names_all_updated - badge_names_incoming
     to_remove_badges.each { |badge_name|
       b = Badge.find_by(name: badge_name)
       if b
