@@ -24,7 +24,13 @@ module OAuth2BlenderIdUtils
     rows = PluginStoreRow.where('plugin_name = ? AND key LIKE ?', 'oauth2_blender_id', 'oauth2_blender_id_user_%').to_a
     rows.each do |row|
       ps_row = PluginStore.cast_value(row.type_name, row.value)
-      user_badges = fetch_user_badges(ps_row['credentials']['token'], ps_row['oauth_user_id'])
+      begin
+        user_badges = fetch_user_badges(ps_row['credentials']['token'], ps_row['oauth_user_id'])
+      rescue OpenURI::HTTPError => error
+        response = error.io
+        Rails.logger.warn("Error fetching badges for user #{ps_row['oauth_user_id']}: #{response.status}")
+        return
+      end
       user = User.where(id: ps_row['user_id']).first
       log("Updating badges for User: #{user.id}")
       update_user_badges(user_badges, user)
