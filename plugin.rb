@@ -19,7 +19,7 @@ module BlenderIdUtils
     # Get the existing badge names from Plugin Store
     badges = ::PluginStore.get("blender_id", "blender_id_badges")
     if not badges
-      return Array.new()
+      return Set.new()
     end
     return badges
   end
@@ -98,7 +98,7 @@ module BlenderIdUtils
       badge_names_incoming << value['label']
     end
 
-    badge_names_all = get_blender_id_badges.to_set
+    badge_names_all = get_blender_id_badges
 
     # Combine all the exsiting badges with the incoming one
     # This is meant to automatically extend the list of existing badges
