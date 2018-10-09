@@ -44,6 +44,7 @@ module OAuth2BlenderIdUtils
         if response.status[0] == '403'
           Rails.logger.warn("Removing expired or invalid credentials for user #{ps_row['oauth_user_id']}")
           store_oauth_user_credentials(ps_row['user_id'], ps_row['oauth_user_id'], nil)
+        end
         return
       end
       user = User.where(id: ps_row['user_id']).first
