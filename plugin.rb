@@ -22,14 +22,11 @@ module OAuth2BlenderIdUtils
   def badge_grant
     log("Granting badges")
     rows = PluginStoreRow.where('plugin_name = ? AND key LIKE ?', 'oauth2_blender_id', 'oauth2_blender_id_user_%').to_a
-    # ps = Hash[rows.map { |row| [row.key, PluginStore.cast_value(row.type_name, row.value)] }]
-    # ps = PluginStore.get('oauth2_blender_id','oauth2_blender_id_user_2338')
-    # log("Friend: #{ps}")
     rows.each do |row|
       ps_row = PluginStore.cast_value(row.type_name, row.value)
       user_badges = fetch_user_badges(ps_row['credentials']['token'], ps_row['oauth_user_id'])
       user = User.where(id: ps_row['user_id']).first
-      log("Updating badges for: #{user.id}")
+      log("Updating badges for User: #{user.id}")
       update_user_badges(user_badges, user)
     end
   end
